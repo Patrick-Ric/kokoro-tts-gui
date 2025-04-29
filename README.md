@@ -38,7 +38,7 @@ Additional control characters such as flexible pause times and different voices 
 3. Place `kokoro.onnx` and `voices-v1.0.bin` in the project directory.
 4. Run the application:
    ```bash
-   python kokoro_tts_split_gui10_fp32.py
+   python kokoro_tts_gui.py
    ```
 
 ## Usage
