@@ -1,9 +1,10 @@
 # Kokoro TTS GUI
 
-A graphical user interface (GUI) for text-to-speech (TTS) processing and text file splitting using the Kokoro ONNX model. This tool allows users to split large text files into smaller parts and convert them to audio with customizable voice mixes, pause durations, and speeds.
+A graphical user interface (GUI) for text-to-speech (TTS) processing and text file splitting using the Kokoro ONNX model. This tool allows users to split large text files into smaller parts and convert them to audio with customizable voice mixes, pause durations after each sentence, and reading speed.
+Additional control characters such as flexible pause times and different voices can be used within the text (see TTS Processing below).
 
 ## Features
-- **Text Splitting**: Split large text files into multiple parts based on a specified word or tag (e.g., `[voice=custom_mix]`).
+- **Text Splitting**: Split large text files into multiple parts based on a specified word or tag (e.g.,`Chapter`, `[voice=custom_mix]`).
 - **TTS Processing**: Convert text files to WAV audio files using the Kokoro ONNX model with configurable voices, pauses, and speeds.
 - **Multithreading**: Process multiple TTS tasks concurrently with adjustable thread limits.
 - **Multilingual Support**: Switch between English and German interfaces.
@@ -11,7 +12,6 @@ A graphical user interface (GUI) for text-to-speech (TTS) processing and text fi
 - **Help Documentation**: Built-in help tab with usage instructions.
 
 ## Screenshots
-*(Add screenshots here, e.g., of the GUI's Text Splitting and TTS Processing tabs. You can upload images to the repository and link them like this:)*
 ![TTS Processing Tab](screenshots/TTS_GUI2.png)
 ![Text Splitting Tab](screenshots/TTS_GUI1.png)
 ## Requirements
@@ -47,13 +47,18 @@ A graphical user interface (GUI) for text-to-speech (TTS) processing and text fi
    - Select an input text file and specify the number of parts and a split word/tag (e.g., `[voice=custom_mix]`).
    - Click "Split Text File" to create split files.
    - Use "Load Split Files to TTS" to transfer them to the TTS tab by selecting the first split part with the ending _001.txt. All split parts are then read in by the GUI und processing and the work is started immediately.
-   - Note:For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book. 
+   - Note: For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book. 
 
 2. **TTS Processing**:
    - In the "TTS Processing" tab, select an input text file or load split files.
    - Specify an output WAV file, pause duration, speed, and voice weights.
    - Click "Add Task" to queue the task.
    - Monitor progress in the process table, where you can pause, cancel, restart, or delete tasks.
+   - Note: Within the text file you can use control commands such as
+    `[voice=custom_mix]`
+    `[voice=af_heart]`
+    `[pause=1.2]`
+    always at the beginning and alone in a line. 
 
 3. **Configuration**:
    - Save your settings with "Save Configuration" for reuse.
@@ -73,13 +78,6 @@ kokoro-tts-gui/
 └── screenshots/                    # Directory for GUI screenshots
 ```
 
-## Contributing
-Contributions are welcome! Please:
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/your-feature`).
-3. Commit your changes (`git commit -m "Add your feature"`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a Pull Request.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
@@ -87,6 +85,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contact
 For issues or questions, open an issue on GitHub.
 
----
 
-*Note: Replace `dein-benutzername` with your GitHub username and add your email or preferred contact method.*
