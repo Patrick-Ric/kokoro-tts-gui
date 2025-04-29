@@ -682,8 +682,8 @@ class MainWindow(QMainWindow):
             <h2>Features</h2>
             <ul>
                 <li><b>Text Splitting</b>: Split large text files into smaller parts based on a specified word or tag.</li>
-                <li><b>TTS Processing</b>: Convert text files to audio (WAV) using customizable voice mixes, pause durations, and speeds.</li>
-                <li><b>Multithreading</b>: Process multiple TTS tasks concurrently with configurable thread limits.</li>
+                <li><b>TTS Processing</b>: Convert text files to audio (WAV) using customizable voice mixes, pause durations after each sentence, and reading speed.</li>
+                <li><b>Multithreading</b>: Process multiple TTS tasks concurrently with configurable thread limits, Maximum Threads=1 is recommended.</li>
                 <li><b>Multilingual Support</b>: Switch between English and German interfaces.</li>
                 <li><b>Configuration Management</b>: Save and load settings for quick reuse.</li>
             </ul>
@@ -696,6 +696,7 @@ class MainWindow(QMainWindow):
                 <li><b>Split Before Word/Tag</b>: Define a word or tag (e.g., "[voice=custom_mix]") to split before.</li>
                 <li><b>Split Text File</b>: Execute the splitting process.</li>
                 <li><b>Load Split Files to TTS</b>: Transfer split files to the TTS tab for processing.</li>
+                <li><b>Note</b>: For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book. Tools such as fre:ac can be used to merge the audios after everything is finished.</li>
             </ul>
 
             <h2>TTS Processing Tab</h2>
@@ -705,11 +706,12 @@ class MainWindow(QMainWindow):
                 <li><b>Output Audio File</b>: Specify the output WAV file.</li>
                 <li><b>Pause Duration</b>: Set pause duration between sentences (0–10 seconds).</li>
                 <li><b>Speed</b>: Adjust speech speed (0.1–2.0).</li>
-                <li><b>Maximum Threads</b>: Set the number of concurrent tasks (1–8).</li>
+                <li><b>Maximum Threads</b>: Set the number of concurrent tasks (1–8), 1 is recommended.</li>
                 <li><b>Voice Selection</b>: Enable voices and set weights (0.0–1.0) for a custom mix.</li>
                 <li><b>Configuration</b>: Save or load settings.</li>
                 <li><b>Add Task</b>: Add a TTS task to the queue.</li>
                 <li><b>Process Table</b>: Monitor tasks with options to pause, cancel, restart, or delete.</li>
+                <li><b>Note</b>: Within the text file you can use control commands such as [voice=custom_mix] [voice=af_heart] [pause=1.2] always at the beginning and alone in a line.</li>
             </ul>
 
             <h2>Usage</h2>
