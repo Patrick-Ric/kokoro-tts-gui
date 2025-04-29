@@ -711,7 +711,6 @@ class MainWindow(QMainWindow):
                 <li><b>Configuration</b>: Save or load settings.</li>
                 <li><b>Add Task</b>: Add a TTS task to the queue.</li>
                 <li><b>Process Table</b>: Monitor tasks with options to pause, cancel, restart, or delete.</li>
-                <li><b>Note</b>: Within the text file you can use control commands such as [voice=custom_mix] [voice=af_heart] [pause=1.2] always at the beginning and alone in a line.</li>
             </ul>
 
             <h2>Usage</h2>
@@ -720,6 +719,7 @@ class MainWindow(QMainWindow):
                 <li>Load split files or select a single file in the "TTS Processing" tab.</li>
                 <li>Configure voice weights, pause duration, and speed.</li>
                 <li>Add tasks to the queue and monitor progress in the process table.</li>
+                <li><b>Note</b>: Within the text file you can use control commands such as [voice=custom_mix] [voice=af_heart] [pause=1.2] always at the beginning and alone in a line.</li>
             </ol>
 
             <h2>Requirements</h2>
@@ -760,23 +760,37 @@ class MainWindow(QMainWindow):
         self.split_log_text.setPlaceholderText(TRANSLATIONS[self.language]["split_log_placeholder"])
 
         # Update TTS Tab
-        tts_scroll_layout = self.tts_layout.itemAt(0).widget().widgetAt(0).widget().layout()
+        # Access the scroll layout through the QSplitter
+        tts_upper_widget = self.tts_layout.itemAt(0).widget().widget(0)  # Upper widget in QSplitter
+        tts_scroll_layout = tts_upper_widget.layout().itemAt(0).widget().widget().layout()  # QScrollArea's widget layout
+        tts_lower_widget = self.tts_layout.itemAt(0).widget().widget(1)  # Lower widget in QSplitter
+
+        # Update input file section
         tts_scroll_layout.itemAt(0).layout().itemAt(0).widget().setText(TRANSLATIONS[self.language]["tts_input_file_label"])
         self.tts_input_file_edit.setPlaceholderText(TRANSLATIONS[self.language]["tts_input_file_placeholder"])
         tts_scroll_layout.itemAt(0).layout().itemAt(2).widget().setText(TRANSLATIONS[self.language]["tts_browse_button"])
         tts_scroll_layout.itemAt(0).layout().itemAt(3).widget().setText(TRANSLATIONS[self.language]["tts_split_files_button"])
+
+        # Update output file section
         tts_scroll_layout.itemAt(1).layout().itemAt(0).widget().setText(TRANSLATIONS[self.language]["tts_output_file_label"])
         self.tts_output_file_edit.setPlaceholderText(TRANSLATIONS[self.language]["tts_output_file_placeholder"])
         tts_scroll_layout.itemAt(1).layout().itemAt(2).widget().setText(TRANSLATIONS[self.language]["tts_browse_button"])
+
+        # Update parameters section
         tts_scroll_layout.itemAt(2).layout().itemAt(0).widget().setText(TRANSLATIONS[self.language]["tts_pause_duration_label"])
         tts_scroll_layout.itemAt(2).layout().itemAt(2).widget().setText(TRANSLATIONS[self.language]["tts_speed_label"])
         tts_scroll_layout.itemAt(2).layout().itemAt(4).widget().setText(TRANSLATIONS[self.language]["tts_max_threads_label"])
+
+        # Update voice selection and configuration labels
         tts_scroll_layout.itemAt(3).widget().setText(TRANSLATIONS[self.language]["tts_voice_selection_label"])
         tts_scroll_layout.itemAt(5).widget().setText(TRANSLATIONS[self.language]["tts_config_label"])
         tts_scroll_layout.itemAt(6).layout().itemAt(0).widget().setText(TRANSLATIONS[self.language]["tts_save_config_button"])
         tts_scroll_layout.itemAt(6).layout().itemAt(1).widget().setText(TRANSLATIONS[self.language]["tts_load_config_button"])
-        self.tts_layout.itemAt(0).widget().widgetAt(1).layout().itemAt(0).widget().setText(TRANSLATIONS[self.language]["tts_add_task_button"])
-        self.tts_layout.itemAt(0).widget().widgetAt(1).layout().itemAt(1).widget().setText(TRANSLATIONS[self.language]["tts_processes_label"])
+
+        # Update lower widget (process table section)
+        tts_lower_layout = tts_lower_widget.layout()
+        tts_lower_layout.itemAt(0).widget().setText(TRANSLATIONS[self.language]["tts_add_task_button"])
+        tts_lower_layout.itemAt(1).widget().setText(TRANSLATIONS[self.language]["tts_processes_label"])
         self.tts_process_table.setHorizontalHeaderLabels(TRANSLATIONS[self.language]["tts_table_headers"])
 
         # Update process table buttons
@@ -977,11 +991,11 @@ class MainWindow(QMainWindow):
                 start_pos = actual_splits[i]
                 end_pos = actual_splits[i + 1]
                 part_text = text[start_pos:end_pos].strip()
-                
+
                 output_file = os.path.join(input_dir, f"{input_name}_{i+1:03d}.txt")
                 with open(output_file, "w", encoding="utf-8") as f:
                     f.write(part_text)
-                
+
                 self.last_split_files.append(output_file)
                 self.split_log_text.append(TRANSLATIONS[self.language]["log_part_saved"].format(output_file, len(part_text)))
 
@@ -1022,7 +1036,7 @@ class MainWindow(QMainWindow):
         directory = os.path.dirname(first_file)
         filename = os.path.basename(first_file)
         base_name_match = re.match(r'(.+)_(\d{3})\.txt$', filename, re.IGNORECASE)
-        
+
         if not base_name_match:
             QMessageBox.warning(self, "Error", TRANSLATIONS[self.language]["error_split_file_pattern"])
             self.split_log_text.append(TRANSLATIONS[self.language]["error_split_file_pattern"])
@@ -1030,7 +1044,7 @@ class MainWindow(QMainWindow):
 
         base_name = base_name_match.group(1)
         start_number = int(base_name_match.group(2))
-        
+
         split_files = []
         for i in range(start_number, 1000):
             file_path = os.path.join(directory, f"{base_name}_{i:03d}.txt")
