@@ -1,4 +1,4 @@
-# Kokoro TTS & Split GUI
+# Kokoro TTS GUI
 
 A graphical user interface (GUI) for text-to-speech (TTS) processing and text file splitting using the Kokoro ONNX model. This tool allows users to split large text files into smaller parts and convert them to audio with customizable voice mixes, pause durations, and speeds.
 
@@ -12,9 +12,8 @@ A graphical user interface (GUI) for text-to-speech (TTS) processing and text fi
 
 ## Screenshots
 *(Add screenshots here, e.g., of the GUI's Text Splitting and TTS Processing tabs. You can upload images to the repository and link them like this:)*
-![Text Splitting Tab](screenshots/text_splitting_tab.png)
-![TTS Processing Tab](screenshots/tts_processing_tab.png)
-
+![TTS Processing Tab](TTS_GUI2.png)
+![Text Splitting Tab](TTS_GUI1.png)
 ## Requirements
 - **Python**: Version 3.9–3.12
 - **Dependencies**:
@@ -24,12 +23,12 @@ A graphical user interface (GUI) for text-to-speech (TTS) processing and text fi
 - **Kokoro Model Files**:
   - `kokoro.onnx`
   - `voices-v1.0.bin`
-  *(Note: These files are not included in the repository due to licensing. Contact the Kokoro model provider for access.)*
+  *(Note: These files are not included in the repository, they must be in the same folder as the gui)*
 
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/dein-benutzername/kokoro-tts-gui.git
+   git clone https://github.com/Patrick-Ric/kokoro-tts-gui.git
    cd kokoro-tts-gui
    ```
 2. Install dependencies:
@@ -47,7 +46,8 @@ A graphical user interface (GUI) for text-to-speech (TTS) processing and text fi
    - Go to the "Text Splitting" tab.
    - Select an input text file and specify the number of parts and a split word/tag (e.g., `[voice=custom_mix]`).
    - Click "Split Text File" to create split files.
-   - Use "Load Split Files to TTS" to transfer them to the TTS tab.
+   - Use "Load Split Files to TTS" to transfer them to the TTS tab by selecting the first split part with the ending _001.txt. All split parts are then read in by the GUI und processing and the work is started immediately.
+   - Note:For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book. 
 
 2. **TTS Processing**:
    - In the "TTS Processing" tab, select an input text file or load split files.
@@ -85,7 +85,7 @@ Contributions are welcome! Please:
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
-For issues or questions, open an issue on GitHub or contact [your-email@example.com].
+For issues or questions, open an issue on GitHub.
 
 ---
 
