@@ -12,8 +12,8 @@ A graphical user interface (GUI) for text-to-speech (TTS) processing and text fi
 
 ## Screenshots
 *(Add screenshots here, e.g., of the GUI's Text Splitting and TTS Processing tabs. You can upload images to the repository and link them like this:)*
-![TTS Processing Tab](TTS_GUI2.png)
-![Text Splitting Tab](TTS_GUI1.png)
+![TTS Processing Tab](screenshots/TTS_GUI2.png)
+![Text Splitting Tab](screenshots/TTS_GUI1.png)
 ## Requirements
 - **Python**: Version 3.9–3.12
 - **Dependencies**:
