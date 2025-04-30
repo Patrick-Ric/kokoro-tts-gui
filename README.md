@@ -59,7 +59,7 @@ Additional control characters such as flexible pause times and different voices 
     `[voice=af_heart]`
     `[pause=1.2]`
     always at the beginning and alone in a line. 
-   - Voicemix is the mixed voice from the GUI (Voice Selection an Weights) and it       can be activated by the control commands `[voice=custom_mix]` in the textfile.
+   - Voicemix is the mixed voice from the GUI (Voice Selection an Weights) and it       can be activated by the control commands `[voice=custom_mix]` within the text      file.
 
 3. **Configuration**:
    - Save your settings with "Save Configuration" for reuse.
