@@ -59,6 +59,7 @@ Additional control characters such as flexible pause times and different voices 
     `[voice=af_heart]`
     `[pause=1.2]`
     always at the beginning and alone in a line. 
+   - Voicemix is the mixed voice from the GUI (Voice Selection an Weights) and it       can be activated by the control commands `[voice=custom_mix]` in the textfile.
 
 3. **Configuration**:
    - Save your settings with "Save Configuration" for reuse.
@@ -67,16 +68,6 @@ Additional control characters such as flexible pause times and different voices 
 4. **Language**:
    - Switch between English and German using the dropdown at the top.
 
-## Project Structure
-```
-kokoro-tts-gui/
-├── kokoro_tts_split_gui10_fp32.py  # Main application script
-├── README.md                       # Project documentation
-├── LICENSE                         # MIT License
-├── requirements.txt                # Python dependencies
-├── configs/                        # Directory for saved configurations
-└── screenshots/                    # Directory for GUI screenshots
-```
 
 
 ## License
