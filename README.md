@@ -51,7 +51,9 @@ BUT the GUI looks for filename "kokoro.onnx" therefore the name must be renamed 
    - Select an input text file and specify the number of parts and a split word/tag (e.g., `[voice=custom_mix]`).
    - Click "Split Text File" to create split files.
    - Use "Load Split Files to TTS" to transfer them to the TTS tab by selecting the first split part with the ending _001.txt. All split parts are then read in by the GUI und processing and the work is started immediately.
-   - Note: For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book. 
+   - Note: For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book.
+   - You can find a more detailed Text Splitting explanation here: 
+https://github.com/Patrick-Ric/kokoro-tts-gui/issues/2
 
 2. **TTS Processing**:
    - In the "TTS Processing" tab, select an input text file or load split files.
