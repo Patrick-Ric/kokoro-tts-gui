@@ -5,4 +5,3 @@ soundfile
 psutil
 kokoro-onnx
 phonemizer-fork
-(Upgrading phonemizer-fork to 3.3.2 to fix the memory leak of 3.3.1)
