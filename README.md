@@ -23,7 +23,10 @@ Additional control characters such as flexible pause times and different voices 
 - **Kokoro Model Files**:
   - `kokoro.onnx`
   - `voices-v1.0.bin`
-  *(Note: These files are not included in the repository, they must be in the same folder as the gui)*
+  *(Note: These files are not included in the repository, they must be in the same 
+folder as the gui, you can find them here 
+https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0 
+kokoro-v1.0.onnx (~310 MB, that is the f32-Version), voices-v1.0.bin (26.9 MB).)*
 
 ## Installation
 1. Clone the repository:
