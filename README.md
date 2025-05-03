@@ -1,4 +1,4 @@
-# Kokoro TTS GUI
+# Kokoro TTS GUI (Audiobook Maker)
 
 A graphical user interface (GUI) for text-to-speech (TTS) processing and text file splitting using the Kokoro ONNX model ideal for audiobook production. This tool allows users to split large text files into smaller parts and convert them to audio with customizable voice mixes, pause durations after each sentence, and reading speed.
 Additional control characters such as flexible pause times and different voices can be used within the text (see TTS Processing below).
