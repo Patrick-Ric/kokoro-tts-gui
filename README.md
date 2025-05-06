@@ -27,7 +27,7 @@ Additional control characters such as flexible pause times and different voices 
 folder as the gui, you can find them here 
 https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0 
 kokoro-v1.0.onnx (~310 MB, that is the f32-Version), voices-v1.0.bin (26.9 MB).
-BUT the GUI looks for filename "kokoro.onnx" therefore the name must be renamed in kokoro.onnx )*
+BUT the GUI looks for filename "kokoro.onnx" therefore the name must be **renamed** in kokoro.onnx )*
 
 ## Installation
 1. Clone the repository:
