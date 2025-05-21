@@ -1,6 +1,6 @@
-# Kokoro TTS GUI
+# Kokoro TTS GUI (Audiobook Maker)
 
-A graphical user interface (GUI) for text-to-speech (TTS) processing and text file splitting using the Kokoro ONNX model. This tool allows users to split large text files into smaller parts and convert them to audio with customizable voice mixes, pause durations after each sentence, and reading speed.
+A graphical user interface (GUI) for text-to-speech (TTS) processing and text file splitting using the Kokoro ONNX model ideal for audiobook production. This tool allows users to split large text files into smaller parts and convert them to audio with customizable voice mixes, pause durations after each sentence, and reading speed.
 Additional control characters such as flexible pause times and different voices can be used within the text (see TTS Processing below).
 
 ## Features
@@ -23,7 +23,11 @@ Additional control characters such as flexible pause times and different voices 
 - **Kokoro Model Files**:
   - `kokoro.onnx`
   - `voices-v1.0.bin`
-  *(Note: These files are not included in the repository, they must be in the same folder as the gui)*
+  *(Note: These files are not included in the repository, they must be in the same 
+folder as the gui, you can find them here 
+https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0 
+kokoro-v1.0.onnx (~310 MB, that is the f32-Version), voices-v1.0.bin (26.9 MB).
+BUT the GUI looks for filename "kokoro.onnx" therefore the name must be **renamed** in kokoro.onnx )*
 
 ## Installation
 1. Clone the repository:
@@ -47,7 +51,9 @@ Additional control characters such as flexible pause times and different voices 
    - Select an input text file and specify the number of parts and a split word/tag (e.g., `[voice=custom_mix]`).
    - Click "Split Text File" to create split files.
    - Use "Load Split Files to TTS" to transfer them to the TTS tab by selecting the first split part with the ending _001.txt. All split parts are then read in by the GUI und processing and the work is started immediately.
-   - Note: For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book. 
+   - Note: For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book.
+   - You can find a more detailed Text Splitting explanation here: 
+https://github.com/Patrick-Ric/kokoro-tts-gui/issues/2
 
 2. **TTS Processing**:
    - In the "TTS Processing" tab, select an input text file or load split files.
