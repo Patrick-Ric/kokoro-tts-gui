@@ -15,7 +15,7 @@ Additional control characters such as flexible pause times and different voices 
 ## Screenshots
 ![TTS Processing Tab](screenshots/TTS_GUI2a.png)
 ![Text Splitting Tab](screenshots/TTS_GUI1.png)
-![Text Splitting Tab](screenshots/Kokoro_GUI_Mix.png)
+![Voice Mixing Tab](screenshots/Kokoro_GUI_Mix.png)
 ## Requirements
 - **Python**: Version 3.9–3.12
 - **Dependencies**:
