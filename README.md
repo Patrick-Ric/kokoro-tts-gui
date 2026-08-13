@@ -77,7 +77,7 @@ BUT the GUI looks for filename "kokoro.onnx" therefore the name must be **rename
 ```text
 [pause=1.5]
 [voice=af_heart]
-Chapter 1. INTRODUCTION TO ARTIFICIAL INTELLIGENCE AND SPEECH SYNTHESIS
+Chapter 1. INTRODUCTION TO ARTIFICIAL INTELLIGENCE AND SPEECH SYNTHESIS.
 
 [pause=2.0]
 [voice=custom_mix]
