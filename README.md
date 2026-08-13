@@ -8,9 +8,8 @@ Additional control characters such as flexible pause times and different voices 
 - **TTS Processing**: Convert text files to WAV audio files using the Kokoro ONNX model with configurable voices, pauses, and speeds.
 - **Voice Mixing**: Mix up to 6 different self-mixable voices (custom_mix and custom_mix_1 through custom_mix_5) directly in the GUI and activate them via control commands in the text file.
 - **Multithreading**: Process multiple TTS tasks concurrently with adjustable thread limits.
-- **Multilingual Support**: Switch between English and German interfaces.
 - **Configuration Management**: Save and load settings for quick reuse.
-- **Help Documentation**: Built-in help tab with usage instructions.
+
 
 ## Screenshots
 ![TTS Processing Tab](screenshots/TTS_GUI2a.png)
@@ -60,7 +59,7 @@ BUT the GUI looks for filename "kokoro.onnx" therefore the name must be **rename
 
 ### 2. TTS Processing
 - In the "TTS Processing" tab, select an input text file or load split files.
-- Specify an output WAV file, pause duration, speed, and voice weights.
+- Specify an output WAV file, speed, and voice weights.
 - Click "Add Task" to queue the task.
 - Monitor progress in the process table, where you can pause, cancel, restart, or delete tasks.
 - **Note**: Within the text file you can use control commands such as
