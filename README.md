@@ -85,10 +85,10 @@ Artificial intelligence allows computers to learn from experience and perform hu
 [pause=0.8]
 Neural speech synthesis transforms written text into natural-sounding speech with remarkable realism.
 
-[pause=2.0]
+[pause=2.15]
 [voice=custom_mix_1]
 By blending different voice models, you can create unique narrators tailored to specific stories or topics.
-[pause=0.8]
+[pause=0.75]
 Control tags give you precise command over pauses, pacing, and speaker switching throughout your audiobook.
 ```
 
