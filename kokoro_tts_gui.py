@@ -24,7 +24,7 @@ from kokoro_onnx import Kokoro
 
 # Translations dictionary for English only
 TRANSLATIONS = {
-    "window_title": "Kokoro TTS & Split GUI",
+    "window_title": "Kokoro TTS & Split GUI v2.0",
     "tab_split": "Text Splitting",
     "tab_tts": "TTS Processing",
     "tab_custom_mix": "Voice Custom Mix",
