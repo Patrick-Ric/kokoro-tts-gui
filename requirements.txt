@@ -3,4 +3,4 @@ numpy
 soundfile
 psutil
 kokoro-onnx
-phonemizer-fork
+phonemizer-fork>=3.3.2
