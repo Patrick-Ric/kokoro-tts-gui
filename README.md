@@ -19,7 +19,7 @@ Additional control characters such as flexible pause times and different voices 
 ![Text Splitting Tab](screenshots/TTS_GUI1.png)
 ![Voice Mixing Tab](screenshots/Kokoro_GUI_Mix.png)
 ## Requirements
-- **Python**: Version 3.9–3.12
+- **Python**: Version 3.10–3.13 (required: `kokoro-onnx>=0.4.7` needs Python ≥ 3.10; with Python 3.9 pip silently installs an old `kokoro-onnx 0.1.x` that cannot read `voices-v1.0.bin`)
 - **Dependencies**:
   ```bash
   pip install PyQt5 numpy soundfile psutil kokoro-onnx phonemizer-fork

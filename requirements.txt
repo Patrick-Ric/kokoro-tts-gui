@@ -2,5 +2,5 @@ PyQt5
 numpy
 soundfile
 psutil
-kokoro-onnx
+kokoro-onnx>=0.4.7
 phonemizer-fork>=3.3.2
