@@ -7,8 +7,10 @@ Additional control characters such as flexible pause times and different voices 
 - **Text Splitting**: Split large text files into multiple parts based on a specified word or tag (e.g.,`Chapter`, `[voice=custom_mix]`).
 - **TTS Processing**: Convert text files to WAV audio files using the Kokoro ONNX model with configurable voices, pauses, and speeds.
 - **Voice Mixing**: Mix up to 6 different self-mixable voices (custom_mix and custom_mix_1 through custom_mix_5) directly in the GUI and activate them via control commands in the text file.
-- **Multithreading**: Process multiple TTS tasks concurrently with adjustable thread limits.
+- **Multithreading**: Process multiple TTS tasks concurrently with adjustable thread limits (shared model instance — loaded only once, ~310 MB).
 - **Configuration Management**: Save and load settings for quick reuse.
+- **Phoneme Mode**: Wrap text in `$$...$$` to pass it directly to Kokoro as a phoneme string (G2P skipped). A single `$` is ignored and left untouched.
+- **Safety**: The app asks for confirmation before quitting while tasks are running or queued, and it runs from any working directory (model paths are script-relative).
 
 
 ## Screenshots
@@ -19,8 +21,9 @@ Additional control characters such as flexible pause times and different voices 
 - **Python**: Version 3.9–3.12
 - **Dependencies**:
   ```bash
-  pip install PyQt5 numpy torch soundfile psutil kokoro-onnx phonemizer-fork
+  pip install PyQt5 numpy soundfile psutil kokoro-onnx phonemizer-fork
   ```
+  (No `torch` needed — ONNX inference only.)
 - **Kokoro Model Files**:
   - `kokoro.onnx`
   - `voices-v1.0.bin`
@@ -71,6 +74,7 @@ BUT the GUI looks for filename "kokoro.onnx" therefore the name must be **rename
   [pause=2.34]
   ```
   always at the beginning and alone in a line.
+- **Phoneme mode**: everything between a pair of `$$` markers is sent directly to Kokoro as phonemes (`is_phonemes=True`), e.g. `$$hɛˈloʊ wɜːld$$`. If a `$$` section is never closed, the rest of the text is treated as phonemes and a warning is logged.
 - Voicemix is the mixed voice from the GUI (Voice Selection and Weights) and it can be activated by the control command `[voice=custom_mix]` within the text file. Now up to 6 different self-mixable voices (custom_mix and custom_mix_1 through custom_mix_5) can be configured directly in the GUI.
 
 ### 3. Example Text File with Control Commands

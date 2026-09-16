@@ -1,6 +1,5 @@
 PyQt5
 numpy
-torch
 soundfile
 psutil
 kokoro-onnx

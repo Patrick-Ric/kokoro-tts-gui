@@ -18,9 +18,57 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal, QObject, QEvent, QTimer
 from PyQt5.QtGui import QCursor
 import soundfile as sf
 import numpy as np
-import torch
+import threading
 import psutil
 from kokoro_onnx import Kokoro
+
+# Script-relative paths: the GUI works no matter where it is started from.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "kokoro.onnx")
+VOICES_PATH = os.path.join(BASE_DIR, "voices-v1.0.bin")
+CONFIGS_DIR = os.path.join(BASE_DIR, "configs")
+
+# Shared Kokoro instance. Loading the ~310 MB ONNX model once instead of once
+# per task saves RAM (N x 310 MB -> 310 MB) and removes the load latency from
+# every subsequent task. onnxruntime sessions are thread-safe for run().
+_kokoro_instance = None
+_kokoro_lock = threading.Lock()
+
+
+def get_kokoro():
+    """Return the shared Kokoro instance, loading it on first use."""
+    global _kokoro_instance
+    with _kokoro_lock:
+        if _kokoro_instance is None:
+            _kokoro_instance = Kokoro(MODEL_PATH, VOICES_PATH)
+            # Make the active onnxruntime providers visible in the console.
+            # kokoro-onnx picks CPU by default and only uses GPU providers
+            # when onnxruntime-gpu is installed (or ONNX_PROVIDER is set).
+            try:
+                import onnxruntime as _ort
+                installed = list(_ort.get_available_providers())
+                print(f"[GUI] onnxruntime providers available: {installed}")
+                if installed and installed[0] != "CPUExecutionProvider":
+                    print(f"[GUI] GPU acceleration active (first provider: {installed[0]}).")
+                else:
+                    print("[GUI] Running on CPU. Install 'onnxruntime-gpu' for NVIDIA GPU acceleration.")
+            except Exception as _e:
+                print(f"[GUI] Could not query onnxruntime providers: {_e}")
+        return _kokoro_instance
+
+
+def release_kokoro():
+    """Drop the shared Kokoro instance so its memory can be reclaimed.
+
+    Called when the last TTS thread has finished: users who typically run
+    only one or two tasks should not pay ~310 MB of resident model memory
+    between sessions. The next task simply reloads the model.
+    """
+    global _kokoro_instance
+    with _kokoro_lock:
+        if _kokoro_instance is not None:
+            _kokoro_instance = None
+            gc.collect()
 
 # Translations dictionary for English only
 TRANSLATIONS = {
@@ -128,193 +176,12 @@ TRANSLATIONS = {
     "log_speed_clamped": "[Process {}][{}] Speed {:.2f} outside allowed range, clamped to {:.2f}",
     "log_voicepack_fallback": "[Process {}] ⚠️ Voice mix '{}' has no active voices, using the active mix instead.",
     "log_no_active_mix": "[Process {}] ❌ Error: No active voice mix configured (all weights are 0).",
+    "log_phoneme_mode": "[Process {}][{}] Phoneme mode: G2P/Espeak/Misaki skipped, string passed directly to Kokoro.",
+    "log_phoneme_unclosed": "[Process {}][{}] Warning: '$$' section was opened but not closed — remaining text treated as phonemes.",
+    "log_phoneme_segment_error": "[Process {}][{}] Phoneme segment error: {}",
+    "quit_confirm_title": "Tasks still processing?",
+    "quit_confirm_text": "{} task(s) are running and {} are waiting in the queue.\nQuit anyway?",
 }
-
-class CursorHeaderView(QHeaderView):
-    """QHeaderView that shows the split double-arrow cursor when the mouse
-    hovers near a section boundary (column separator line).
-
-    The cursor is applied to the *viewport* (the widget that is actually under
-    the mouse) and AFTER the base class handling, so nothing can override it.
-    As an extra guarantee a CursorSupervisor polls the global mouse position.
-    """
-
-    def __init__(self, orientation, parent=None):
-        super().__init__(orientation, parent)
-        self.setMouseTracking(True)
-        self.viewport().setMouseTracking(True)
-
-    def _update_cursor(self, pos):
-        if QApplication.mouseButtons():
-            return  # dragging a section - keep Qt's own cursor
-        viewport = self.viewport()
-        x = pos.x()
-        near_border = False
-        for i in range(1, self.count()):
-            if abs(self.sectionViewportPosition(i) - x) <= 5:
-                near_border = True
-                break
-        if near_border:
-            if viewport.cursor().shape() != Qt.SplitHCursor:
-                viewport.setCursor(Qt.SplitHCursor)
-        else:
-            if viewport.cursor().shape() != Qt.ArrowCursor:
-                viewport.unsetCursor()
-
-    def mouseMoveEvent(self, event):
-        super().mouseMoveEvent(event)
-        self._update_cursor(event.pos())
-
-    def leaveEvent(self, event):
-        self.viewport().unsetCursor()
-        super().leaveEvent(event)
-
-
-class CursorSplitterHandle(QSplitterHandle):
-    """QSplitterHandle that reliably shows the vertical double-arrow cursor
-    while the mouse is over the splitter bar."""
-
-    def __init__(self, orientation, parent):
-        super().__init__(orientation, parent)
-        self.setMouseTracking(True)
-
-    def enterEvent(self, event):
-        if not QApplication.mouseButtons():
-            self.setCursor(Qt.SplitVCursor)
-        super().enterEvent(event)
-
-    def mouseMoveEvent(self, event):
-        if not QApplication.mouseButtons() and self.cursor().shape() != Qt.SplitVCursor:
-            self.setCursor(Qt.SplitVCursor)
-        super().mouseMoveEvent(event)
-
-    def leaveEvent(self, event):
-        self.unsetCursor()
-        super().leaveEvent(event)
-
-
-class CursorSplitter(QSplitter):
-    """QSplitter that uses CursorSplitterHandle so the resize cursor is always
-    shown when hovering the bar between the panes."""
-
-    def createHandle(self):
-        return CursorSplitterHandle(self.orientation(), self)
-
-
-class CursorSupervisor(QObject):
-    """Guarantees the double-arrow resize cursors.
-
-    Three independent layers make sure the cursor appears even when the
-    platform swallows hover events or reports mouse positions in a different
-    coordinate system (e.g. high-DPI scaling):
-      1. an application-wide event filter that uses widget-local coordinates,
-      2. a timer that polls the global mouse position,
-      3. an application-wide *override* cursor as the final fallback.
-    """
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._headers = []
-        self._handles = []
-        self._override_active = False
-        self._override_shape = None
-        app = QApplication.instance()
-        if app is not None:
-            app.installEventFilter(self)
-        self._timer = QTimer(self)
-        self._timer.setInterval(40)
-        self._timer.timeout.connect(self._check)
-        self._timer.start()
-
-    def register_header(self, header):
-        if header not in self._headers:
-            self._headers.append(header)
-
-    def register_handle(self, handle):
-        if handle not in self._handles:
-            self._handles.append(handle)
-
-    # ---------- Layer 1: app-wide event filter (widget-local coords) ----------
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.MouseMove:
-            for header in self._headers:
-                viewport = header.viewport()
-                if obj is header or (viewport is not None and obj is viewport):
-                    self._apply_header_cursor(header, event.pos())
-            for handle in self._handles:
-                if obj is handle:
-                    self._apply_handle_cursor(handle, handle.rect().contains(event.pos()))
-        elif event.type() in (QEvent.Leave, QEvent.HoverLeave):
-            for header in self._headers:
-                viewport = header.viewport()
-                if obj is header or (viewport is not None and obj is viewport):
-                    viewport.unsetCursor()
-            for handle in self._handles:
-                if obj is handle:
-                    handle.unsetCursor()
-        return False
-
-    # ---------- Layer 2: timer polling (global coords) ----------
-    def _check(self, gpos=None):
-        if gpos is None:
-            gpos = QCursor.pos()
-        if QApplication.mouseButtons():
-            return  # dragging - Qt manages its own cursor
-        near_header = False
-        near_handle = False
-        for header in self._headers:
-            viewport = header.viewport()
-            if not header.isVisible() or viewport is None or not viewport.isVisible():
-                continue
-            pos = viewport.mapFromGlobal(gpos)
-            if viewport.rect().contains(pos):
-                self._apply_header_cursor(header, pos)
-                x = pos.x()
-                if any(abs(header.sectionViewportPosition(i) - x) <= 5
-                       for i in range(1, header.count())):
-                    near_header = True
-            elif viewport.cursor().shape() != Qt.ArrowCursor:
-                viewport.unsetCursor()
-        for handle in self._handles:
-            if not handle.isVisible():
-                continue
-            over = handle.rect().contains(handle.mapFromGlobal(gpos))
-            self._apply_handle_cursor(handle, over)
-            near_handle = near_handle or over
-        # ---------- Layer 3: override cursor (final fallback) ----------
-        if near_header or near_handle:
-            shape = Qt.SplitHCursor if near_header else Qt.SplitVCursor
-            if not self._override_active or self._override_shape != shape:
-                if self._override_active:
-                    QApplication.restoreOverrideCursor()
-                QApplication.setOverrideCursor(shape)
-                self._override_active = True
-                self._override_shape = shape
-        elif self._override_active:
-            QApplication.restoreOverrideCursor()
-            self._override_active = False
-            self._override_shape = None
-
-    def _apply_header_cursor(self, header, pos):
-        x = pos.x()
-        viewport = header.viewport()
-        near = any(abs(header.sectionViewportPosition(i) - x) <= 5
-                   for i in range(1, header.count()))
-        if near:
-            if viewport.cursor().shape() != Qt.SplitHCursor:
-                viewport.setCursor(Qt.SplitHCursor)
-        else:
-            if viewport.cursor().shape() != Qt.ArrowCursor:
-                viewport.unsetCursor()
-
-    def _apply_handle_cursor(self, handle, over):
-        if over:
-            if handle.cursor().shape() != Qt.SplitVCursor:
-                handle.setCursor(Qt.SplitVCursor)
-        else:
-            if handle.cursor().shape() != Qt.ArrowCursor:
-                handle.unsetCursor()
-
 
 class PathDelegate(QStyledItemDelegate):
     """Draw file paths so that the *tail* stays visible.
@@ -435,7 +302,7 @@ class TTSThread(QThread):
             self.last_time_update = self.start_time
             self.log_signal.emit(TRANSLATIONS["log_process_init"].format(self.process_id))
             try:
-                self.kokoro = Kokoro("kokoro.onnx", "voices-v1.0.bin")
+                self.kokoro = get_kokoro()
             except Exception as e:
                 raise RuntimeError(f"Could not load Kokoro model files: {e}") from e
             self.status_signal.emit(self.process_id, "Running")
@@ -604,8 +471,81 @@ class TTSThread(QThread):
                         break
 
                     self.log_signal.emit(TRANSLATIONS["log_generate_text"].format(self.process_id, text[:40]))
-                    with torch.no_grad():
-                        samples, sr = self.kokoro.create(text, voice=actual_voice, speed=speed, lang="en-us")
+
+                    # ---------- Phoneme-Logik ($$-Toggle) ----------
+                    # "$$" pairs act as a toggle: segments between two "$$"
+                    # markers are passed DIRECTLY to Kokoro as phoneme strings
+                    # (G2P/Espeak/Misaki skipped). A single "$" is NOT a marker
+                    # and stays untouched in the normal pipeline.
+                    if "$$" in text:
+                        segments = []
+                        phoneme_mode = False
+                        for seg in text.split("$$"):
+                            seg = seg.strip()
+                            if seg:
+                                segments.append((phoneme_mode, seg))
+                            phoneme_mode = not phoneme_mode
+                        # "$$" count = segments-1. An unclosed section means an
+                        # ODD number of markers (opened but never closed).
+                        if (len(text.split("$$")) - 1) % 2 == 1:
+                            # Odd number of "$$": last section was never closed.
+                            self.log_signal.emit(
+                                TRANSLATIONS["log_phoneme_unclosed"].format(self.process_id, i + 1)
+                            )
+
+                        all_samples = []
+                        seg_sample_rate = None
+                        for use_phonemes, seg in segments:
+                            # Pause/stop check per segment (keeps Cancel/Pause
+                            # responsive, but does not duplicate the entry-level
+                            # pause/stop logic).
+                            while self._paused and not self._stop:
+                                self.msleep(100)
+                                self.update_time(time.time(), "paused")
+                            if self._stop:
+                                break
+                            try:
+                                if use_phonemes:
+                                    self.log_signal.emit(
+                                        TRANSLATIONS["log_phoneme_mode"].format(self.process_id, i + 1)
+                                    )
+                                    s, sr = self.kokoro.create(
+                                        seg, voice=actual_voice, speed=speed,
+                                        is_phonemes=True,
+                                    )
+                                else:
+                                    s, sr = self.kokoro.create(
+                                        seg, voice=actual_voice, speed=speed,
+                                        lang="en-us",
+                                    )
+                            except Exception as e:
+                                self.log_signal.emit(
+                                    TRANSLATIONS["log_phoneme_segment_error"].format(self.process_id, i + 1, e)
+                                )
+                                continue
+                            if seg_sample_rate is None:
+                                seg_sample_rate = sr
+                            elif sr != seg_sample_rate:
+                                self.log_signal.emit(
+                                    TRANSLATIONS["log_sample_rate_warning"].format(self.process_id, sr, seg_sample_rate)
+                                )
+                            all_samples.append(s)
+                        if all_samples:
+                            if len(all_samples) == 1:
+                                samples = all_samples[0]
+                            else:
+                                samples = np.concatenate(all_samples)
+                            sr = seg_sample_rate
+                        else:
+                            # All segments failed or were canceled.
+                            if self._stop:
+                                break
+                            continue
+                    else:
+                        samples, sr = self.kokoro.create(
+                            text, voice=actual_voice, speed=speed, lang="en-us"
+                        )
+                    # ---------- Ende Phoneme-Toggle ----------
                     self.log_signal.emit(TRANSLATIONS["log_sample_rate"].format(self.process_id, sr, len(samples)))
                     if sr != sample_rate:
                         self.log_signal.emit(TRANSLATIONS["log_sample_rate_warning"].format(self.process_id, sr, sample_rate))
@@ -808,7 +748,7 @@ class MainWindow(QMainWindow):
 
     def init_tts_tab(self):
         """Initialize the TTS Processing tab."""
-        tts_splitter = CursorSplitter(Qt.Vertical)
+        tts_splitter = QSplitter(Qt.Vertical)
         self.tts_layout.addWidget(tts_splitter)
 
         tts_upper_widget = QWidget()
@@ -931,7 +871,7 @@ class MainWindow(QMainWindow):
         )
         # Custom header subclass that reliably shows the split double-arrow
         # cursor when the mouse hovers a column separator line.
-        header = CursorHeaderView(Qt.Horizontal)
+        header = QHeaderView(Qt.Horizontal)
         self.tts_process_table.setHorizontalHeader(header)
         header.setSectionsClickable(True)
         header.setHighlightSections(True)
@@ -965,23 +905,21 @@ class MainWindow(QMainWindow):
         tts_splitter.setHandleWidth(8)
         tts_splitter.setChildrenCollapsible(True)
         tts_splitter.setStyleSheet("QSplitter::handle { background-color: #c0c0c0; }")
-        # Guaranteed double-arrow cursors (works even where the platform
-        # swallows hover/mousemove events): polls the global mouse position.
-        self._cursor_supervisor = CursorSupervisor(self)
-        self._cursor_supervisor.register_header(header)
-        self._cursor_supervisor.register_handle(tts_splitter.handle(0))
+        # Resize cursors are handled natively by Qt (QSplitter/QHeaderView);
+        # under Wayland + Qt5 start with QT_QPA_PLATFORM=xcb if needed.
 
     def init_custom_mix_tab(self):
         """Initialize the Voice Custom Mix tab."""
-        if not os.path.exists("kokoro.onnx") or not os.path.exists("voices-v1.0.bin"):
+        if not os.path.exists(MODEL_PATH) or not os.path.exists(VOICES_PATH):
             raise FileNotFoundError("Kokoro model files are missing.")
         try:
-            kokoro_temp = Kokoro("kokoro.onnx", "voices-v1.0.bin")
+            # The voice names live in voices-v1.0.bin (a numpy archive).
+            # Reading them via np.load avoids loading the ~310 MB model at
+            # startup.
+            import numpy as _np
+            self.available_voices = sorted(_np.load(VOICES_PATH).files)
         except Exception as e:
-            raise RuntimeError(f"Could not load Kokoro model: {e}") from e
-        self.available_voices = sorted(kokoro_temp.voices.keys())
-        del kokoro_temp
-        gc.collect()
+            raise RuntimeError(f"Could not read voice names: {e}") from e
         self.custom_mix_voice_checkboxes = {}
         self.custom_mix_voice_spins = {}
         default_weights = {voice: 0.0 for voice in self.available_voices}
@@ -1443,6 +1381,25 @@ class MainWindow(QMainWindow):
             self.save_last_configuration()
         except Exception:
             pass
+
+        # Warn before quitting if there are tasks known to the GUI (running
+        # threads or queued tasks) - accidentally killing a batch can cost
+        # hours of synthesis time.
+        if self.tts_threads or self.tts_task_queue:
+            running_count = sum(1 for t in self.tts_threads.values() if t.isRunning())
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle(TRANSLATIONS["quit_confirm_title"])
+            msg.setText(TRANSLATIONS["quit_confirm_text"].format(
+                running_count,
+                len(self.tts_task_queue),
+            ))
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            msg.setDefaultButton(QMessageBox.No)
+            if msg.exec_() == QMessageBox.No:
+                event.ignore()
+                return
+
         for thread in self.tts_threads.values():
             thread.stop()
         for thread in self.tts_threads.values():
@@ -1450,6 +1407,7 @@ class MainWindow(QMainWindow):
         for thread in self.tts_threads.values():
             thread.cleanup()
         self.tts_threads.clear()
+        release_kokoro()
         gc.collect()
         super().closeEvent(event)
 
@@ -1809,6 +1767,11 @@ class MainWindow(QMainWindow):
                 del self.tts_threads[process_id]
                 if process_id in self.tts_pending_cleanup:
                     self.tts_pending_cleanup.remove(process_id)
+
+        # No tasks left at all (neither running threads nor queued tasks):
+        # reclaim the ~310 MB of resident model memory.
+        if not self.tts_threads and not self.tts_task_queue:
+            release_kokoro()
 
         max_threads = self.tts_max_threads_spin.value()
         active_threads = len(self.tts_threads)
