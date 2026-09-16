@@ -50,9 +50,9 @@ Additional control characters such as flexible pause times and different voices 
    pip install -r requirements.txt
    ```
 4. Place the model file (`kokoro-v1.0.onnx`) and `voices-v1.0.bin` next to the script (any `kokoro*.onnx` / `voices*.bin` name works).
-5. Run the application (activate the venv first if you created one):
+5. Run the application (the venv is still active from step 2; after a
+   restart, activate it again with `source venv/bin/activate`):
    ```bash
-   source venv/bin/activate  # skip if you installed system-wide
    python kokoro_tts_gui.py
    ```
 
