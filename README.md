@@ -36,13 +36,23 @@ Additional control characters such as flexible pause times and different voices 
    git clone https://github.com/Patrick-Ric/kokoro-tts-gui.git
    cd kokoro-tts-gui
    ```
-2. Install dependencies:
+2. Create and activate a virtual environment (recommended — modern Linux
+   distributions such as Manjaro, Ubuntu 23.04+, Fedora or Debian 12+ block
+   system-wide `pip installs`, error `externally-managed-environment`):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+   (If `venv` is missing: `sudo pacman -S python-virtualenv` on Manjaro/Arch
+   or `sudo apt install python3-venv` on Debian/Ubuntu.)
+3. Install dependencies (CPU-only — no NVIDIA/CUDA downloads):
    ```bash
    pip install -r requirements.txt
    ```
-3. Place the model file (`kokoro-v1.0.onnx`) and `voices-v1.0.bin` next to the script (any `kokoro*.onnx` / `voices*.bin` name works).
-4. Run the application:
+4. Place the model file (`kokoro-v1.0.onnx`) and `voices-v1.0.bin` next to the script (any `kokoro*.onnx` / `voices*.bin` name works).
+5. Run the application (activate the venv first if you created one):
    ```bash
+   source venv/bin/activate  # skip if you installed system-wide
    python kokoro_tts_gui.py
    ```
 
