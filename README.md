@@ -54,10 +54,10 @@ Additional control characters such as flexible pause times and different voices 
    `uv venv --seed ...` or install with
    `uv pip install --python venv/bin/python -r requirements.txt`.
 3. Place the model file (`kokoro-v1.0.onnx`) and `voices-v1.0.bin` next to the script (any `kokoro*.onnx` / `voices*.bin` name works).
-4. Run the application (the venv is still active from step 2; after a
-   restart, activate it again with `source venv/bin/activate`):
+4. Run the application (the venv is still active from step 2; in a new
+   terminal session, activate it again first with `source venv/bin/activate`):
    ```bash
-   source venv/bin/activate  # only needed after a restart
+   source venv/bin/activate  # only needed in a new terminal
    python kokoro_tts_gui.py
    ```
 
