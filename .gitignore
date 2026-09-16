@@ -1,0 +1,23 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Model files (download separately, ~340 MB)
+*.onnx
+*.bin
+
+# Generated audio
+*.wav
+
+# Local GUI state (not for the repo)
+configs/last_config.json
+configs/last_blender_config.json
+
+# IDE and editor files
+.idea/
+*.swp
+*.swo

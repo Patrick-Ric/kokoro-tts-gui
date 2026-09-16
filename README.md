@@ -36,23 +36,28 @@ Additional control characters such as flexible pause times and different voices 
    git clone https://github.com/Patrick-Ric/kokoro-tts-gui.git
    cd kokoro-tts-gui
    ```
-2. Create and activate a virtual environment (recommended — modern Linux
-   distributions such as Manjaro, Ubuntu 23.04+, Fedora or Debian 12+ block
-   system-wide `pip installs`, error `externally-managed-environment`):
+2. Run the setup script (copy & paste — picks a working Python 3.10–3.13
+   automatically; on Python 3.14+ systems it uses 3.13 via `uv`):
+   ```bash
+   bash setup.sh
+   ```
+   Manual alternative (without the script):
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-   (If `venv` is missing: `sudo pacman -S python-virtualenv` on Manjaro/Arch
-   or `sudo apt install python3-venv` on Debian/Ubuntu.)
-3. Install dependencies (CPU-only — no NVIDIA/CUDA downloads):
-   ```bash
    pip install -r requirements.txt
    ```
-4. Place the model file (`kokoro-v1.0.onnx`) and `voices-v1.0.bin` next to the script (any `kokoro*.onnx` / `voices*.bin` name works).
-5. Run the application (the venv is still active from step 2; after a
+   Notes: modern Linux distributions (Manjaro, Ubuntu 23.04+, Fedora,
+   Debian 12+) block system-wide `pip installs`
+   (`externally-managed-environment`) — always use the venv.
+   `uv venv` creates no `pip` by default — then either use
+   `uv venv --seed ...` or install with
+   `uv pip install --python venv/bin/python -r requirements.txt`.
+3. Place the model file (`kokoro-v1.0.onnx`) and `voices-v1.0.bin` next to the script (any `kokoro*.onnx` / `voices*.bin` name works).
+4. Run the application (the venv is still active from step 2; after a
    restart, activate it again with `source venv/bin/activate`):
    ```bash
+   source venv/bin/activate  # only needed after a restart
    python kokoro_tts_gui.py
    ```
 
