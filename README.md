@@ -24,14 +24,10 @@ Additional control characters such as flexible pause times and different voices 
   pip install PyQt5 numpy soundfile psutil kokoro-onnx phonemizer-fork
   ```
   (No `torch` needed — ONNX inference only.)
-- **Kokoro Model Files**:
-  - `kokoro.onnx`
-  - `voices-v1.0.bin`
-  *(Note: These files are not included in the repository, they must be in the same 
-folder as the gui, you can find them here 
-https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0 
-kokoro-v1.0.onnx (~310 MB, that is the f32-Version), voices-v1.0.bin (26.9 MB).
-BUT the GUI looks for filename "kokoro.onnx" therefore the name must be **renamed** in kokoro.onnx )*
+- **Kokoro Model Files** (not included in the repository — place them next to the script, **no renaming needed**; you can find them here:
+  https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0):
+  - Model: `kokoro-v1.0.onnx` (~310 MB, f32 version) — also accepted: `kokoro.onnx` or any `kokoro*.onnx`
+  - Voices: `voices-v1.0.bin` (26.9 MB) — also accepted: any `voices*.bin`
 
 ## Installation
 1. Clone the repository:
@@ -43,7 +39,7 @@ BUT the GUI looks for filename "kokoro.onnx" therefore the name must be **rename
    ```bash
    pip install -r requirements.txt
    ```
-3. Place `kokoro.onnx` and `voices-v1.0.bin` in the project directory.
+3. Place the model file (`kokoro-v1.0.onnx`) and `voices-v1.0.bin` next to the script (any `kokoro*.onnx` / `voices*.bin` name works).
 4. Run the application:
    ```bash
    python kokoro_tts_gui.py

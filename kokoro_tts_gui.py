@@ -1,5 +1,6 @@
 import sys
 import os
+import glob
 import json
 import re
 import time
@@ -24,9 +25,47 @@ from kokoro_onnx import Kokoro
 
 # Script-relative paths: the GUI works no matter where it is started from.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "kokoro.onnx")
-VOICES_PATH = os.path.join(BASE_DIR, "voices-v1.0.bin")
 CONFIGS_DIR = os.path.join(BASE_DIR, "configs")
+
+# Model/voices file lookup: accept the names as shipped upstream
+# (kokoro-v1.0.onnx) as well as the short name (kokoro.onnx) and any
+# other kokoro*.onnx / voices*.bin variant. First hit wins, in the
+# order listed; resolved once at startup. No renaming needed.
+MODEL_CANDIDATES = ("kokoro.onnx", "kokoro-v1.0.onnx")
+VOICE_CANDIDATES = ("voices-v1.0.bin",)
+
+
+def _resolve_model_file(candidates, pattern):
+    """Return the path of the first existing candidate, else a glob fallback.
+
+    Raises FileNotFoundError listing what was searched if nothing matches.
+    """
+    for name in candidates:
+        path = os.path.join(BASE_DIR, name)
+        if os.path.exists(path):
+            return path
+    matches = sorted(
+        p for p in glob.glob(os.path.join(BASE_DIR, pattern))
+        if os.path.isfile(p)
+    )
+    if matches:
+        return matches[0]
+    searched = ", ".join(list(candidates) + [pattern])
+    raise FileNotFoundError(
+        f"No model file found next to the script (searched: {searched})."
+    )
+
+
+def _model_display(path):
+    return os.path.basename(path)
+
+
+try:
+    MODEL_PATH = _resolve_model_file(MODEL_CANDIDATES, "kokoro*.onnx")
+    VOICES_PATH = _resolve_model_file(VOICE_CANDIDATES, "voices*.bin")
+except FileNotFoundError:
+    MODEL_PATH = os.path.join(BASE_DIR, "kokoro.onnx")
+    VOICES_PATH = os.path.join(BASE_DIR, "voices-v1.0.bin")
 
 # Shared Kokoro instance. Loading the ~310 MB ONNX model once instead of once
 # per task saves RAM (N x 310 MB -> 310 MB) and removes the load latency from
@@ -673,7 +712,9 @@ class MainWindow(QMainWindow):
             self.models_loaded = False
             QMessageBox.critical(
                 self, "Error",
-                f"{e}\n\nPlace 'kokoro.onnx' and 'voices-v1.0.bin' next to the script.\n"
+                f"{e}\n\nPlace the model file (e.g. '{_model_display(MODEL_PATH)}' "
+                f"or 'kokoro-v1.0.onnx') and '{_model_display(VOICES_PATH)}' "
+                "next to the script — no renaming needed.\n"
                 "The TTS and voice-mix tabs are disabled until the model files are available."
             )
             for idx in range(1, self.tab_widget.count()):
@@ -911,7 +952,11 @@ class MainWindow(QMainWindow):
     def init_custom_mix_tab(self):
         """Initialize the Voice Custom Mix tab."""
         if not os.path.exists(MODEL_PATH) or not os.path.exists(VOICES_PATH):
-            raise FileNotFoundError("Kokoro model files are missing.")
+            raise FileNotFoundError(
+                f"Kokoro model files are missing "
+                f"(searched: {', '.join(list(MODEL_CANDIDATES) + ['kokoro*.onnx'])}; "
+                f"{', '.join(list(VOICE_CANDIDATES) + ['voices*.bin'])})."
+            )
         try:
             # The voice names live in voices-v1.0.bin (a numpy archive).
             # Reading them via np.load avoids loading the ~310 MB model at
