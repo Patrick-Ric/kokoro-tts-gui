@@ -51,8 +51,8 @@ Additional control characters such as flexible pause times and different voices 
 - Go to the "Text Splitting" tab.
 - Select an input text file and specify the number of parts and a split word/tag (e.g., `[voice=custom_mix]`).
 - Click "Split Text File" to create split files.
-- Use "Load Split Files to TTS" to transfer them to the TTS tab by selecting the first split part with the ending `_001.txt`. All split parts are then read in by the GUI and processing and the work is started immediately.
-- **Note**: For very long texts such as audio books, this offers the option of splitting a long document into many smaller ones, so that if an error is detected later in the text or audio, only this section of the text needs to be corrected and recalculated instead of the entire audio book.
+- Use "Load Split Files to TTS" to transfer them to the TTS tab by selecting the first split part (e.g. with the ending `_001.txt`). All split parts are then read in by the GUI and processing and the work is started immediately. You can also start from any later part (e.g. `_005.txt`) — that file and all following parts are then loaded automatically.
+- **Note**: Splitting is optional. You can also process a whole book as a single file — just add it directly in the "TTS Processing" tab via "Add Task" (e.g. `MyBook.txt` → `MyBook.wav`). Splitting is only recommended for very long texts such as audiobooks: if an error is detected later in the text or audio, only that text-section needs to be corrected and re-synthesized instead of the entire book.
 - You can find a more detailed Text Splitting explanation here:
   https://github.com/Patrick-Ric/kokoro-tts-gui/issues/2
 
