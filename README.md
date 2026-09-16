@@ -11,6 +11,7 @@ Additional control characters such as flexible pause times and different voices 
 - **Configuration Management**: Save and load settings for quick reuse.
 - **Phoneme Mode**: Wrap text in `$$...$$` to pass it directly to Kokoro as a phoneme string (G2P skipped). A single `$` is ignored and left untouched.
 - **Safety**: The app asks for confirmation before quitting while tasks are running or queued, and it runs from any working directory (model paths are script-relative).
+- **CPU by default**: runs on any PC without a GPU (tested). NVIDIA GPU acceleration via `pip install "kokoro-onnx[gpu]"` should work automatically but is untested — feedback welcome.
 
 
 ## Screenshots
